@@ -64,19 +64,20 @@ def init_db():
 
     c.execute(
         """
-        CREATE TABLE IF NOT EXISTS articles (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            topic TEXT NOT NULL,
-            sub_topic TEXT,
-            title TEXT NOT NULL,
-            url TEXT,
-            raw_text TEXT,
-            summary TEXT,
-            seo_title TEXT,
-            seo_keywords TEXT,
-            date TEXT,
-            published INTEGER DEFAULT 0
-        )
+    CREATE TABLE IF NOT EXISTS articles (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        topic TEXT NOT NULL,
+        sub_topic TEXT,
+        title TEXT NOT NULL,
+        url TEXT,
+        raw_text TEXT,
+        image_url TEXT,  -- Added this line to store image links
+        summary TEXT,
+        seo_title TEXT,
+        seo_keywords TEXT,
+        date TEXT,
+        published INTEGER DEFAULT 0
+    )
     """
     )
 
