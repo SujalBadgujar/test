@@ -48,9 +48,8 @@ def run_news_agent(topic="Worldwide", sub_topic="India"):
     print("✅ Pipeline completed. Visit http://127.0.0.1:5000 to view the blog.")
 
 if __name__ == "__main__":
-    run_news_agent()
-
-    # Keep the script alive to prevent Flask from stopping
-    print("🟢 AI News Agent is running... Press Ctrl+C to stop.")
+    # Run the news agent every 10 minutes
     while True:
-        time.sleep(1)
+        run_news_agent()
+        print("🕑 Waiting for 10 minutes before the next run...")
+        time.sleep(600)  # 600 seconds = 10 minutes
