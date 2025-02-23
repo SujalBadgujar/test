@@ -4,3 +4,4 @@ requests
 flask
 gunicorn
 bs4
+googlesearch
