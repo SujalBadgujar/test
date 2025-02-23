@@ -1,6 +1,7 @@
 import sqlite3
 from flask import Flask, render_template, abort
 import threading
+import os
 
 app = Flask(__name__)
 
@@ -65,8 +66,9 @@ class Publisher:
 
     def run_server(self):
         """Run the Flask server."""
-        print("🚀 Starting Flask server at http://127.0.0.1:5000")
-        self.app.run(debug=True, use_reloader=False, threaded=True, port=5000)
+        port = int(os.environ.get("PORT", 5000))  # Use Render's assigned port
+        print(f"🚀 Starting Flask server at http://0.0.0.0:{port}")
+        self.app.run(host="0.0.0.0", port=port, debug=True, use_reloader=False, threaded=True)
 
     def start(self):
         """Start the server in a separate thread."""
