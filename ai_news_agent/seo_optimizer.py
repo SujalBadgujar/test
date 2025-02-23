@@ -1,81 +1,41 @@
+# seo_optimizer.py
 import sqlite3
-import nltk
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
+import nltk
 
 class SEOOptimizer:
     def __init__(self, db_path="news.db"):
         self.db_path = db_path
-        nltk.download('punkt')  # Ensure tokenizer is available
-        nltk.download('stopwords')  # Ensure stopwords are available
+        nltk.download('punkt')
+        nltk.download('stopwords')
 
-    def generate_seo_title(self, original_title, topic, sub_topic=None):
-        """Create an SEO-friendly title."""
-        base_title = original_title.strip()
-        if sub_topic:
-            seo_title = f"{sub_topic} {base_title} - Latest {topic} News 2025"
-        else:
-            seo_title = f"{base_title} - Latest {topic} News 2025"
-        return seo_title[:60]  # Limit to 60 characters for SEO best practice
+    def generate_seo_title(self, original_title, topic, sub_topic):
+        return f"{sub_topic} {original_title} - {topic} News 2025"
 
     def extract_keywords(self, text):
-        """Extract top keywords from text."""
-        if not text:
-            return ""
-
         stop_words = set(stopwords.words('english'))
-        words = word_tokenize(text.lower())
-
-        # Count word frequency, ignoring stopwords and non-alphanumeric words
-        word_freq = {}
-        for word in words:
-            if word not in stop_words and word.isalnum():
-                word_freq[word] = word_freq.get(word, 0) + 1
-
-        # Get top 5 keywords
-        top_keywords = sorted(word_freq.items(), key=lambda x: x[1], reverse=True)[:5]
-        return ", ".join([word for word, freq in top_keywords])
+        words = [w for w in word_tokenize(text.lower()) if w.isalnum() and w not in stop_words]
+        word_freq = nltk.FreqDist(words)
+        return ", ".join([word for word, freq in word_freq.most_common(5)])
 
     def optimize_articles(self):
-        """Optimize all summarized articles in the database."""
         conn = sqlite3.connect(self.db_path)
         c = conn.cursor()
-
-        # Fetch articles that have summaries but no SEO data
-        c.execute("SELECT id, title, topic, sub_topic, summary FROM articles WHERE summary IS NOT NULL AND seo_title IS NULL")
+        
+        c.execute("SELECT id, title, topic, sub_topic, full_post FROM articles WHERE full_post IS NOT NULL AND seo_title IS NULL")
         articles = c.fetchall()
-
-        if not articles:
-            print("No articles found for SEO optimization.")
-            conn.close()
-            return
-
-        for article_id, title, topic, sub_topic, summary in articles:
+        
+        for article_id, title, topic, sub_topic, full_post in articles:
             seo_title = self.generate_seo_title(title, topic, sub_topic)
-            seo_keywords = self.extract_keywords(summary)
-
+            seo_keywords = self.extract_keywords(full_post)
             c.execute("UPDATE articles SET seo_title = ?, seo_keywords = ? WHERE id = ?",
                       (seo_title, seo_keywords, article_id))
-            print(f"Optimized article ID {article_id}: {seo_title} | Keywords: {seo_keywords}")
-
+            print(f"Optimized article ID {article_id}: {seo_title}")
+        
         conn.commit()
         conn.close()
 
 if __name__ == "__main__":
-    # Test the SEO Optimizer
     optimizer = SEOOptimizer()
-    print("Testing SEO optimization...")
-    
-    sample_title = "Floods Disrupt Life"
-    sample_topic = "Uttar Pradesh"
-    sample_sub_topic = "Lucknow"
-    sample_summary = "Heavy rains caused flooding in Lucknow today. Roads were blocked, and schools closed."
-
-    seo_title = optimizer.generate_seo_title(sample_title, sample_topic, sample_sub_topic)
-    seo_keywords = optimizer.extract_keywords(sample_summary)
-
-    print(f"SEO Title: {seo_title}")
-    print(f"SEO Keywords: {seo_keywords}")
-
-    print("\nOptimizing articles from database...")
     optimizer.optimize_articles()

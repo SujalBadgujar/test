@@ -1,179 +1,124 @@
-# # # summarizer.py
-# # import sqlite3
-# # import nltk
-# # from nltk.tokenize import sent_tokenize, word_tokenize
-# # from nltk.corpus import stopwords
-# # from heapq import nlargest
-
-# # class Summarizer:
-# #     def __init__(self, db_path="news.db"):
-# #         self.db_path = db_path
-# #         nltk.download('punkt')  # Ensure tokenizer is available
-# #         nltk.download('stopwords')  # Ensure stopwords are available
-
-# #     def summarize_text(self, raw_text, summary_length=3):
-# #         """Generate a summary from raw text using sentence scoring."""
-# #         if not raw_text or len(raw_text.strip()) == 0:
-# #             return "No content available to summarize."
-        
-# #         # Tokenize into sentences
-# #         sentences = sent_tokenize(raw_text)
-# #         if len(sentences) <= summary_length:
-# #             return " ".join(sentences)  # Return full text if too short
-        
-# #         # Tokenize into words and remove stopwords
-# #         stop_words = set(stopwords.words('english'))
-# #         words = word_tokenize(raw_text.lower())
-# #         word_freq = {}
-# #         for word in words:
-# #             if word not in stop_words and word.isalnum():
-# #                 word_freq[word] = word_freq.get(word, 0) + 1
-        
-# #         # Score sentences based on word frequency
-# #         sentence_scores = {}
-# #         for sentence in sentences:
-# #             for word, freq in word_freq.items():
-# #                 if word in sentence.lower():
-# #                     sentence_scores[sentence] = sentence_scores.get(sentence, 0) + freq
-        
-# #         # Select top N sentences
-# #         summary_sentences = nlargest(summary_length, sentence_scores, key=sentence_scores.get)
-# #         summary = " ".join(summary_sentences)
-# #         return summary
-
-# #     def process_articles(self):
-# #         """Summarize all unsummarized articles in the database."""
-# #         conn = sqlite3.connect(self.db_path)
-# #         c = conn.cursor()
-        
-# #         # Fetch articles without summaries
-# #         c.execute("SELECT id, raw_text FROM articles WHERE summary IS NULL")
-# #         articles = c.fetchall()
-        
-# #         for article_id, raw_text in articles:
-# #             summary = self.summarize_text(raw_text)
-# #             c.execute("UPDATE articles SET summary = ? WHERE id = ?", (summary, article_id))
-# #             print(f"Summarized article ID {article_id}: {summary[:50]}...")
-        
-# #         conn.commit()
-# #         conn.close()
-
-# # if __name__ == "__main__":
-# #     # Test the Summarizer
-# #     summarizer = Summarizer()
-# #     print("Testing summarizer with sample text...")
-# #     sample_text = "A daring robbery occurred in Lucknow yesterday. Thieves stole gold from a shop in broad daylight. Police are investigating this shocking crime. The city is on high alert after the incident."
-# #     summary = summarizer.summarize_text(sample_text)
-# #     print(f"Summary: {summary}")
-    
-# #     print("\nProcessing articles from database...")
-# #     summarizer.process_articles()
-
-
-
-# # summarizer.py
-# import sqlite3
-# import nltk
-# from nltk.tokenize import sent_tokenize, word_tokenize
-# from nltk.corpus import stopwords
-# from heapq import nlargest
-
-# class Summarizer:
-#     def __init__(self, db_path="news.db"):
-#         self.db_path = db_path
-#         nltk.download('punkt')
-#         nltk.download('stopwords')
-
-#     def summarize_text(self, raw_text, summary_length=3):
-#         """Generate a summary from raw text."""
-#         if not raw_text or len(raw_text.strip()) == 0:
-#             return "No content available to summarize."
-        
-#         sentences = sent_tokenize(raw_text)
-#         if len(sentences) <= summary_length:
-#             return " ".join(sentences)
-        
-#         stop_words = set(stopwords.words('english'))
-#         words = word_tokenize(raw_text.lower())
-#         word_freq = {}
-#         for word in words:
-#             if word not in stop_words and word.isalnum():
-#                 word_freq[word] = word_freq.get(word, 0) + 1
-        
-#         sentence_scores = {}
-#         for sentence in sentences:
-#             for word, freq in word_freq.items():
-#                 if word in sentence.lower():
-#                     sentence_scores[sentence] = sentence_scores.get(sentence, 0) + freq
-        
-#         summary_sentences = nlargest(summary_length, sentence_scores, key=sentence_scores.get)
-#         return " ".join(summary_sentences)
-
-#     def process_articles(self):
-#         """Summarize all unsummarized articles in the database."""
-#         conn = sqlite3.connect(self.db_path)
-#         c = conn.cursor()
-        
-#         c.execute("SELECT id, raw_text FROM articles WHERE summary IS NULL OR summary = ''")
-#         articles = c.fetchall()
-        
-#         for article_id, raw_text in articles:
-#             summary = self.summarize_text(raw_text)
-#             c.execute("UPDATE articles SET summary = ? WHERE id = ?", (summary, article_id))
-#             print(f"Summarized article ID {article_id}: {summary[:50]}...")
-
-#         conn.commit()
-#         conn.close()
-
-# if __name__ == "__main__":
-#     summarizer = Summarizer()
-#     print("\nSummarizing articles from the database...")
-#     summarizer.process_articles()
-
-
-
 import sqlite3
 import nltk
-from transformers import pipeline
+from nltk.tokenize import sent_tokenize, word_tokenize
+from nltk.corpus import stopwords
+import random
 
 class Summarizer:
-    def __init__(self, db_path="news.db", model_name="facebook/bart-large-cnn"):
-        """
-        Initialize the summarization pipeline using a transformer model.
-        Uses 'facebook/bart-large-cnn' for abstractive summarization.
-        """
+    def __init__(self, db_path="news.db"):
         self.db_path = db_path
-        self.summarizer = pipeline("summarization", model=model_name)
-        nltk.download('punkt')
+        nltk.download("punkt")
+        nltk.download("stopwords")
 
-    def summarize_text(self, raw_text, min_length=50, max_length=200):
-        """Generate an abstractive summary using a transformer model."""
-        if not raw_text or len(raw_text.strip()) == 0:
-            return "No content available to summarize."
+    def create_blog_post(self, raw_texts, topic, sub_topic):
+        """Generate a well-structured, engaging blog post."""
+        if not raw_texts:
+            return "No data available for this topic."
 
-        if len(raw_text.split()) < 50:  # Avoid summarizing very short texts
-            return raw_text
+        # Combine raw texts and tokenize
+        combined_text = " ".join(raw_texts)
+        sentences = sent_tokenize(combined_text)
+        stop_words = set(stopwords.words("english"))
 
-        summary = self.summarizer(raw_text, min_length=min_length, max_length=max_length, do_sample=False)
-        return summary[0]['summary_text']
+        # Extract keywords
+        words = [
+            w for w in word_tokenize(combined_text.lower())
+            if w.isalnum() and w not in stop_words
+        ]
+        word_freq = nltk.FreqDist(words)
+        top_keywords = [word for word, freq in word_freq.most_common(10)]
 
-    def process_articles(self):
-        """Summarize all unsummarized articles in the database."""
+        # Blog Post Components
+        seo_title = f"{sub_topic}: A Deep Dive into {topic} Latest Updates"
+        meta_description = f"Explore the latest developments on {sub_topic} in {topic}. "
+        meta_description += f"Read insights, expert opinions, and key takeaways from recent reports."
+
+        # Introduction
+        intro = (
+            f"### {seo_title}\n\n"
+            f"📅 **Date**: 2025-02-22  \n"
+            f"🔍 **Keywords**: {', '.join(top_keywords[:5])}\n\n"
+            f"#### **Introduction**\n"
+            f"The city of **{sub_topic}, {topic}**, has been making headlines recently. "
+            f"From economic changes to social developments, there's a lot happening. "
+            f"This article summarizes the most crucial updates you need to know.\n\n"
+        )
+
+        # Extract meaningful content
+        body = "#### **Key Highlights**\n"
+        selected_sentences = random.sample(sentences, min(10, len(sentences)))
+        for i, sent in enumerate(selected_sentences):
+            body += f"- **{i+1}.** {sent}\n"
+
+        # Adding a quote for engagement
+        quote = (
+            "\n> *'Change is the only constant. Understanding these events helps us shape a better future.'* - Unknown\n\n"
+        )
+
+        # Adding tweet embed placeholder (can be replaced with real tweets)
+        tweet_embed = (
+            "#### **Public Reactions**\n"
+            "_Here's what people are saying:_\n\n"
+            "📢 **[Tweet Embed Placeholder]**\n\n"
+        )
+
+        # Adding an image placeholder
+        image_embed = "![Illustration](https://via.placeholder.com/800x400?text=News+Image)\n\n"
+
+        # Conclusion
+        conclusion = (
+            "#### **Conclusion**\n"
+            f"As events in **{sub_topic}** continue to unfold, it’s essential to stay informed. "
+            "We will keep updating this space with more details as they emerge. "
+            "Feel free to share your thoughts in the comments below!\n\n"
+        )
+
+        # Full Blog Post
+        full_post = intro + image_embed + body + quote + tweet_embed + conclusion
+        return seo_title, meta_description, full_post
+
+    def process_articles(self, topic, sub_topic):
+        """Process raw articles into a structured blog post."""
         conn = sqlite3.connect(self.db_path)
         c = conn.cursor()
 
-        c.execute("SELECT id, raw_text FROM articles WHERE summary IS NULL OR summary = ''")
-        articles = c.fetchall()
+        c.execute(
+            "SELECT raw_text FROM articles WHERE topic = ? AND sub_topic = ? AND full_post IS NULL",
+            (topic, sub_topic),
+        )
+        raw_texts = [row[0] for row in c.fetchall()]
 
-        for article_id, raw_text in articles:
-            summary = self.summarize_text(raw_text)
-            c.execute("UPDATE articles SET summary = ? WHERE id = ?", (summary, article_id))
-            print(f"🔹 Summarized article ID {article_id}: {summary[:50]}...")
+        if raw_texts:
+            seo_title, meta_description, full_post = self.create_blog_post(
+                raw_texts, topic, sub_topic
+            )
+
+            # Delete old unprocessed articles
+            c.execute("DELETE FROM articles WHERE topic = ? AND sub_topic = ?", (topic, sub_topic))
+
+            # Insert formatted blog post
+            c.execute(
+                """
+                INSERT INTO articles (topic, sub_topic, seo_title, full_post, date, seo_keywords, meta_description)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+                (
+                    topic,
+                    sub_topic,
+                    seo_title,
+                    full_post,
+                    "2025-02-22",
+                    ", ".join(seo_title.split()),
+                    meta_description,
+                ),
+            )
+
+            print(f"Generated blog post for {sub_topic}")
 
         conn.commit()
         conn.close()
 
+
 if __name__ == "__main__":
     summarizer = Summarizer()
-    print("\n🔹 Summarizing articles from the database...")
-    summarizer.process_articles()
+    summarizer.process_articles("Uttar Pradesh", "Lucknow")

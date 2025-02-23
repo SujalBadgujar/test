@@ -1,161 +1,56 @@
-# import time
-# import schedule
-# import logging
-# from database import init_db
-# from searcher import Searcher
-# from summarizer import Summarizer
-# from seo_optimizer import SEOOptimizer
-# from publisher import Publisher
-# from clear import clear_database
-
-
-# # Configure logging
-# logging.basicConfig(
-#     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-# )
-
-
-# def run_pipeline():
-#     """Run the full AI news agent pipeline."""
-#     logging.info(f"Starting pipeline run at {time.ctime()}")
-
-#     try:
-
-#         # clear_database()
-
-#         # Step 1: Fetch and Crawl News Data
-#         searcher = Searcher()
-#         # Searcher()
-
-#         logging.info("Crawling the web for news...")
-#         search_topic = "Uttar Pradesh"  # Change if needed
-#         searcher.crawl_web(search_topic)
-
-#         # Step 2: Summarization
-#         summarizer = Summarizer()
-#         logging.info("Summarizing articles...")
-#         summarizer.process_articles()
-
-#         # Step 3: SEO Optimization
-#         optimizer = SEOOptimizer()
-#         logging.info("Optimizing articles for SEO...")
-#         optimizer.optimize_articles()
-
-#         # Step 4: Publishing Articles
-#         logging.info("Publishing articles to the blog...")
-#         publisher = Publisher()
-#         publisher.publish_articles()
-#         publisher.run_server()  # Only publishing, no new Flask instance
-
-#     except Exception as e:
-#         logging.error(f"Pipeline execution failed: {e}")
-
-
-# def setup_scheduler(run_interval=10):
-#     """Set up the pipeline to run periodically."""
-#     schedule.every(run_interval).minutes.do(run_pipeline)
-#     logging.info(f"Scheduler set up to run pipeline every {run_interval} minutes.")
-
-
-# def run_news_agent():
-#     """Initialize and run the AI News Agent."""
-#     logging.info("Starting the AI News Agent...")
-
-#     # Initialize database
-#     init_db()
-
-#     # Run the pipeline once immediately
-#     run_pipeline()
-
-#     # Set up and start the scheduler
-#     setup_scheduler(run_interval=10)  # Change interval for testing
-
-#     # Keep script running for scheduling
-#     while True:
-#         schedule.run_pending()
-#         time.sleep(1)  # Check every second
-
-
-# if __name__ == "__main__":
-#     run_news_agent()
-
-
-
-
-
-
-
 import time
-import schedule
-import logging
+from clear import clear_database
 from database import init_db
 from searcher import Searcher
-from summarizer import Summarizer
+from post_generator import BlogPostGenerator  # Updated to use BlogPostGenerator
 from seo_optimizer import SEOOptimizer
 from publisher import Publisher
-from clear import clear_database
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
-
-def run_pipeline():
-    """Run the full AI news agent pipeline."""
-    logging.info(f"Starting pipeline run at {time.ctime()}")
+def run_news_agent(topic="Uttar Pradesh", sub_topic="Lucknow"):
+    print("🚀 Starting the AI News Agent...")
 
     try:
-        # Uncomment to clear database if needed
-        # clear_database()
+        # Step 1: Clear the database
+        print("🗑️ Clearing old data...")
+        clear_database()
 
-        # Step 1: Fetch and Crawl News Data
+        # Step 2: Initialize the database
+        print("📂 Initializing database...")
+        init_db()
+
+        # Step 3: Fetch news articles
         searcher = Searcher()
-        logging.info("Crawling the web for news...")
-        search_topic = "Uttar Pradesh"  # Main topic
-        search_sub_topic = "Lucknow"    # Subtopic
-        searcher.crawl_web(search_topic, search_sub_topic)
+        print(f"📰 Fetching news for {topic} - {sub_topic}...")
+        searcher.crawl_web(topic, sub_topic)
 
-        # Step 2: Summarization
-        summarizer = Summarizer()
-        logging.info("Summarizing articles...")
-        summarizer.process_articles()
+        # Step 4: Convert news articles into blog posts
+        blog_generator = BlogPostGenerator()
+        print("✍️ Generating blog posts...")
+        blog_generator.generate_blog_posts()
 
-        # Step 3: SEO Optimization
-        optimizer = SEOOptimizer()
-        logging.info("Optimizing articles for SEO...")
-        optimizer.optimize_articles()
+        # # Step 5: Optimize blog posts for SEO
+        # seo_optimizer = SEOOptimizer()
+        # print("📈 Optimizing blog posts for SEO...")
+        # seo_optimizer.optimize_all()
 
-        # Step 4: Publishing Articles
-        logging.info("Publishing articles to the blog...")
+        # Step 6: Publish to blog
         publisher = Publisher()
-        publisher.publish_articles()
-        publisher.run_server()  # Only publishing, no new Flask instance
+        print("📢 Publishing to the blog...")
+        publisher.start()
+
+        # Step 7: Give Flask server time to initialize
+        print("⏳ Waiting for the server to start...")
+        time.sleep(5)
 
     except Exception as e:
-        logging.error(f"Pipeline execution failed: {e}")
+        print(f"❌ Error in pipeline: {e}")
 
-def setup_scheduler(run_interval=10):
-    """Set up the pipeline to run periodically."""
-    schedule.every(run_interval).minutes.do(run_pipeline)
-    logging.info(f"Scheduler set up to run pipeline every {run_interval} minutes.")
-
-def run_news_agent():
-    """Initialize and run the AI News Agent."""
-    logging.info("Starting the AI News Agent...")
-
-    # Initialize database
-    init_db()
-
-    # Run the pipeline once immediately
-    run_pipeline()
-
-    # Set up and start the scheduler
-    setup_scheduler(run_interval=10)  # Change interval for testing
-
-    # Keep script running for scheduling
-    while True:
-        schedule.run_pending()
-        time.sleep(1)  # Check every second
+    print("✅ Pipeline completed. Visit http://127.0.0.1:5000 to view the blog.")
 
 if __name__ == "__main__":
     run_news_agent()
+
+    # Keep the script alive to prevent Flask from stopping
+    print("🟢 AI News Agent is running... Press Ctrl+C to stop.")
+    while True:
+        time.sleep(1)

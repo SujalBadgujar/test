@@ -1,31 +1,26 @@
+<!-- templates/index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>News Articles</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 40px; padding: 20px; background-color: #f4f4f4; }
-        h1 { text-align: center; }
-        ul { list-style-type: none; padding: 0; }
-        li { background: white; padding: 10px; margin: 10px 0; border-radius: 5px; box-shadow: 1px 1px 5px rgba(0,0,0,0.2); }
-        a { text-decoration: none; color: #007BFF; font-weight: bold; }
-        a:hover { text-decoration: underline; }
-    </style>
+    <title>AI News Agent</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <h1>Published Articles</h1>
-    {% if articles %}
-        <ul>
-            {% for article in articles %}
-                <li>
-                    <a href="{{ url_for('article', article_id=article[0]) }}">{{ article[1] }}</a>
-                    <small>({{ article[2] }})</small>
-                </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p>No articles found.</p>
-    {% endif %}
+    <header>
+        <h1>AI News Agent</h1>
+        <p>Stories from the Future, Today</p>
+    </header>
+    <main>
+        {% for article in articles %}
+            <article class="post-preview">
+                <h2><a href="/article/{{ article[0] }}">{{ article[1] }}</a></h2>
+                <p class="date">{{ article[2] }}</p>
+                <p class="preview">{{ article[3] | truncate(200) }}</p>
+            </article>
+        {% endfor %}
+    </main>
 </body>
 </html>
