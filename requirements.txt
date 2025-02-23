@@ -5,3 +5,4 @@ flask
 gunicorn
 bs4
 googlesearch-python
+nltk
