@@ -6,7 +6,7 @@ from post_generator import BlogPostGenerator  # Updated to use BlogPostGenerator
 from seo_optimizer import SEOOptimizer
 from publisher import Publisher
 
-def run_news_agent(topic="Worldwide", sub_topic="India"):
+def run_news_agent(topic="Uttar Pradesh", sub_topic="Lucknow"):
     print("🚀 Starting the AI News Agent...")
 
     try:
