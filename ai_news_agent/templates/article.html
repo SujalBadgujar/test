@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="{{ meta_description }}">
+    <meta name="keywords" content="{{ seo_keywords }}">
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <h1><a href="/">AI News Agent</a></h1>
+            <p class="tagline">Stories from the Future, Today</p>
+        </div>
+    </header>
+    <main class="article-content">
+        <article>
+            <div class="content">{{ content | safe }}</div>
+        </article>
+    </main>
+    <footer class="footer">
+        <p>© 2025 AI News Agent. All rights reserved.</p>
+    </footer>
+</body>
+</html>

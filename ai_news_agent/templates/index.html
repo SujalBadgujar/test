@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI News Agent</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <h1>AI News Agent</h1>
+            <p class="tagline">Stories from the Future, Today</p>
+        </div>
+    </header>
+    <main class="container">
+        {% for article in articles %}
+            <article class="post-preview">
+                <h3 class="post-title">
+                    <a href="/article/{{ article[0] }}">{{ article[1] }}</a>
+                </h3>
+                <p class="post-date">{{ article[2] }}</p>
+                <p class="post-preview-text">{{ article[3] | truncate(200) }}</p>
+            </article>
+        {% endfor %}
+    </main>
+    <footer class="footer">
+        <p>&copy; 2025 AI News Agent. All rights reserved.</p>
+    </footer>
+</body>
+</html>
