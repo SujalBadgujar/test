@@ -1,3 +1,14 @@
 fastapi
 uvicorn
 requests
+time
+clear
+database
+searcher
+post_generator
+seo_optimizer
+publisher
+flask
+flask
+sqlite3
+random
